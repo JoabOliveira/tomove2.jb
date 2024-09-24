@@ -18,13 +18,11 @@ const CadastroCliente = ({ navigation }) => {
       await insertCliente(nome, email, telefone);
       Alert.alert('Sucesso', 'Cliente cadastrado com sucesso!');
       
-      // Limpar os campos e a mensagem
       setNome('');
       setEmail('');
       setTelefone('');
       setMensagem('');
 
-      // Retornar à tela de CadastroCliente
       navigation.navigate('CadastroCliente');
     } catch (error) {
       Alert.alert('Erro', 'Erro ao cadastrar cliente.');

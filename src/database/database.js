@@ -144,15 +144,26 @@ async function updateFuncionario(nome, email, telefone, cargo) {
   }
 }
 
-// Função para buscar atendimentos por data
+// Função para buscar atendimentos por data no formato DD/MM/AAAA
 async function fetchAtendimentosPorData(date) {
   try {
-    const rows = await db.getAllAsync('SELECT * FROM CadastroAtendimento WHERE date = ?;', date);
-    return rows;
+    const query = 'SELECT * FROM CadastroAtendimento WHERE date = ?;';
+    
+    // O banco já armazena a data no formato DD/MM/AAAA, então não é necessária a conversão
+    const rows = await db.getAllAsync(query, [date]);
+    
+    if (rows.length > 0) {
+      return rows;
+    } else {
+      console.log('Nenhum atendimento encontrado para a data:', date);
+      return [];
+    }
   } catch (error) {
     console.error('Erro ao buscar atendimentos por data:', error);
+    throw error;
   }
 }
+
 
 // Inicializar as tabelas
 createTables();

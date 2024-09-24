@@ -19,14 +19,12 @@ const CadastroFuncionario = ({ navigation }) => {
       await insertFuncionario(nome, email, telefone, cargo);
       Alert.alert('Sucesso', 'Funcionário cadastrado com sucesso!');
 
-      // Limpar os campos e a mensagem
       setNome('');
       setEmail('');
       setTelefone('');
       setCargo('');
       setMensagem('');
 
-      // Retornar à tela de CadastroFuncionario
       navigation.navigate('CadastroFuncionario');
     } catch (error) {
       Alert.alert('Erro', 'Erro ao cadastrar funcionário.');

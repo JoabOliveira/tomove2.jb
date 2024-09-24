@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { insertAtendimento, fetchClienteByNome, fetchFuncionarioByNome } from '../database/database';
@@ -38,14 +38,15 @@ const CadastroAtendimento = ({ navigation }) => {
   };
 
   const formatTime = (time) => {
-    const hours = String(time.getHours()).padStart(2, '0');
+    const hours = String(time.getHours() -3).padStart(2, '0');
     const minutes = String(time.getMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`; 
   };
 
   const handleSubmit = async () => {
-    const formattedDate = formatDate(date); 
+    const formattedDate = formatDate(date);
     const formattedTime = formatTime(time);
+
     if (!formattedDate || !formattedTime || !patientName || !funcionario || !description) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
@@ -58,8 +59,8 @@ const CadastroAtendimento = ({ navigation }) => {
       setPatientName('');
       setFuncionario('');
       setDescription(''); 
-      setDate(new Date());  
-      setTime(new Date()); 
+      setDate(new Date());
+      setTime(new Date());
       setErro(null);    
 
       navigation.navigate('CadastroAtendimento');

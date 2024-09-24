@@ -15,7 +15,7 @@ const PerfilFuncionario = () => {
   const [mensagemErro, setMensagemErro] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Função para buscar funcionário por nome
+  
   const buscarFuncionario = async () => {
     if (!nome) {
       Alert.alert('Erro', 'Por favor, forneça um nome válido.');
@@ -26,7 +26,7 @@ const PerfilFuncionario = () => {
     try {
       const funcionariosData = await fetchFuncionarioByNome(nome, email, telefone, cargo);
       if (funcionariosData.length > 0) {
-        const funcionarioData = funcionariosData[0]; // Pega o primeiro funcionário encontrado
+        const funcionarioData = funcionariosData[0]; 
         setFuncionario(funcionarioData);
         setNome(funcionarioData.nome);
         setEmail(funcionarioData.email);
@@ -46,11 +46,11 @@ const PerfilFuncionario = () => {
     }
   };
 
-  // Função para buscar todos os funcionários
+  
   const buscarTodosFuncionarios = async () => {
     setLoading(true);
     try {
-      const todosFuncionarios = await fetchFuncionario(); // Busca todos os funcionários
+      const todosFuncionarios = await fetchFuncionario(); 
       if (todosFuncionarios.length > 0) {
         setFuncionarios(todosFuncionarios);
         setMensagemErro(null);
@@ -65,7 +65,6 @@ const PerfilFuncionario = () => {
     }
   };
 
-  // Função para salvar as edições feitas no funcionário
   const handleSubmit = async () => {
     try {
       await updateFuncionario(nome, email, telefone, cargo);
@@ -134,7 +133,6 @@ const PerfilFuncionario = () => {
         </View>
       )}
 
-      {/* Exibir todos os funcionários */}
       {funcionarios.length > 0 && (
         <ScrollView style={styles.scrollContainer}>
           {funcionarios.map((funcionario) => (

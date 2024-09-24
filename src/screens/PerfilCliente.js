@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, TextInput, Button, Alert, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
-import { fetchClienteByNome, fetchCliente, updateCliente } from '../database/database'; // Assegure-se de importar a função updateCliente
+import { fetchClienteByNome, fetchCliente, updateCliente } from '../database/database'; 
 
 const PerfilCliente = () => {
   const navigation = useNavigation();
@@ -14,7 +14,6 @@ const PerfilCliente = () => {
   const [mensagemErro, setMensagemErro] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Função para buscar cliente por nome
   const buscarCliente = async () => {
     if (!nome) {
       Alert.alert('Erro', 'Por favor, forneça um nome válido.');
@@ -44,13 +43,12 @@ const PerfilCliente = () => {
     }
   };
 
-  // Função para buscar todos os clientes
   const buscarTodosClientes = async () => {
     setLoading(true);
     try {
-      const todosClientes = await fetchCliente(); // Busca todos os clientes
+      const todosClientes = await fetchCliente(); 
       if (todosClientes.length > 0) {
-        setClientes(todosClientes); // Armazena os clientes no estado
+        setClientes(todosClientes); 
         setMensagemErro(null);
       } else {
         setMensagemErro('Nenhum cliente encontrado.');
@@ -65,8 +63,8 @@ const PerfilCliente = () => {
 
   const handleSubmit = async () => {
     try {
-      await updateCliente(nome, email, telefone); // Chame a função para atualizar o cliente
-      setCliente({nome, email, telefone }); // Atualize o estado do cliente
+      await updateCliente(nome, email, telefone); 
+      setCliente({nome, email, telefone }); 
       Alert.alert('Sucesso', 'Dados do cliente atualizados com sucesso!');
       setModoEdicao(false);
     } catch (error) {
@@ -125,7 +123,6 @@ const PerfilCliente = () => {
         </View>
       )}
 
-      {/* Exibir todos os clientes */}
       {clientes.length > 0 && (
         <ScrollView style={styles.scrollContainer}>
           {clientes.map((cliente) => (
