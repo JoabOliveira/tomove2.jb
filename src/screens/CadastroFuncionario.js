@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { insertFuncionario } from '../database/database';
 
-const CadastroFuncionario = ({ navigation }) => {  // Adicionado 'navigation' como prop
+const CadastroFuncionario = ({ navigation }) => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [cargo, setCargo] = useState('');
   const [mensagem, setMensagem] = useState('');
-  const [erro, setErro] = useState(null);
 
   const handleSubmit = async () => {
     if (!nome || !email || !telefone || !cargo) {
@@ -17,18 +16,21 @@ const CadastroFuncionario = ({ navigation }) => {  // Adicionado 'navigation' co
     }
 
     try {
-      await insertFuncionario(nome, email, telefone, cargo);  // Supondo que esta função retorne uma Promise
-      setMensagem('Funcionário cadastrado com sucesso!');
+      await insertFuncionario(nome, email, telefone, cargo);
+      Alert.alert('Sucesso', 'Funcionário cadastrado com sucesso!');
+
+      // Limpar os campos e a mensagem
       setNome('');
       setEmail('');
       setTelefone('');
       setCargo('');
-      Alert.alert('Sucesso', 'Funcionário cadastrado com sucesso!');
-      navigation.goBack();  // Volta para a tela anterior após sucesso
-    } catch (errorMsg) {
-      setMensagem('Erro ao cadastrar funcionário.');
-      setErro(errorMsg);
-      Alert.alert('Erro', errorMsg);
+      setMensagem('');
+
+      // Retornar à tela de CadastroFuncionario
+      navigation.navigate('CadastroFuncionario');
+    } catch (error) {
+      Alert.alert('Erro', 'Erro ao cadastrar funcionário.');
+      console.error('Erro ao cadastrar funcionário:', error);
     }
   };
 
@@ -75,7 +77,6 @@ const CadastroFuncionario = ({ navigation }) => {  // Adicionado 'navigation' co
       </View>
       <Button title="Cadastrar" onPress={handleSubmit} />
       {mensagem ? <Text style={styles.message}>{mensagem}</Text> : null}
-      {erro ? <Text style={styles.error}>{erro}</Text> : null}
     </View>
   );
 };
@@ -103,10 +104,6 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 16,
     color: 'green',
-  },
-  error: {
-    marginTop: 16,
-    color: 'red',
   },
 });
 

@@ -10,7 +10,7 @@ const Agenda = ({ navigation }) => {
         title="Ver Atendimentos"
         onPress={() => navigation.navigate('Atendimentos')}
       />
-       <Button
+      <Button
         title="Cadastrar Atendimento"
         onPress={() => navigation.navigate('CadastroAtendimento')}
       />
@@ -24,11 +24,11 @@ const Agenda = ({ navigation }) => {
       />
       <Button
         title="Perfil do Cliente"
-        onPress={() => navigation.navigate('PerfilCliente', { id: cliente.id })}
+        onPress={() => navigation.navigate('PerfilCliente')} 
       />
       <Button
         title="Perfil do Funcionário"
-        onPress={() => navigation.navigate('PerfilFuncionario',{ id: funcionario.id})}
+        onPress={() => navigation.navigate('PerfilFuncionario')} 
       />
     </View>
   );

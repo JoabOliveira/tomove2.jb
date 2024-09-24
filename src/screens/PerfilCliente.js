@@ -1,121 +1,141 @@
-import React, { useState, useEffect } from 'react';
-import { useRoute, useNavigation } from '@react-navigation/native'; 
-import { View, Text, TextInput, Button, Alert, StyleSheet, ActivityIndicator } from 'react-native';
-import { fetchClienteById, updateCliente } from '../database/database';
+import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { View, Text, TextInput, Button, Alert, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { fetchClienteByNome, fetchCliente, updateCliente } from '../database/database'; // Assegure-se de importar a função updateCliente
 
-const PerfilCliente = () => { 
-  const route = useRoute();
+const PerfilCliente = () => {
   const navigation = useNavigation();
-  const { id } = route.params;
-
-  if (!id) {
-    Alert.alert('Erro', 'ID do cliente não fornecido.');
-    navigation.goBack(); // ou navegue para onde você quiser
-    return null;
-  }
-
-  const [cliente, setCliente] = useState(null);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [cliente, setCliente] = useState(null);
+  const [clientes, setClientes] = useState([]);
   const [modoEdicao, setModoEdicao] = useState(false);
-  const [mensagemSucesso, setMensagemSucesso] = useState('');
   const [mensagemErro, setMensagemErro] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchCliente = async () => {
-      try {
-        const clienteData = await fetchClienteById(id);
-        if (clienteData) {
-          setCliente(clienteData);
-          setNome(clienteData.nome);
-          setEmail(clienteData.email);
-          setTelefone(clienteData.telefone);
-        } else {
-          setMensagemErro('Cliente não encontrado.');
-          Alert.alert('Erro', 'Cliente não encontrado.');
-        }
-      } catch (error) {
-        setMensagemErro('Erro ao carregar dados do cliente.');
-        console.error('Error:', error);
-        Alert.alert('Erro', 'Erro ao carregar dados do cliente.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Função para buscar cliente por nome
+  const buscarCliente = async () => {
+    if (!nome) {
+      Alert.alert('Erro', 'Por favor, forneça um nome válido.');
+      return;
+    }
 
-    fetchCliente();
-  }, [id]);
-
-  const handleSubmit = async () => {
+    setLoading(true);
     try {
-      await updateCliente(id, nome, email, telefone);
-      setCliente({ ...cliente, nome, email, telefone });
-      setModoEdicao(false);
-      setMensagemSucesso('Perfil atualizado com sucesso!');
-      Alert.alert('Sucesso', 'Perfil atualizado com sucesso!');
+      const clientesData = await fetchClienteByNome(nome, email, telefone);
+      if (clientesData.length > 0) {
+        const clienteData = clientesData[0];
+        setCliente(clienteData);
+        setNome(clienteData.nome);
+        setEmail(clienteData.email);
+        setTelefone(clienteData.telefone);
+        setMensagemErro(null);
+      } else {
+        setMensagemErro('Cliente não encontrado.');
+        Alert.alert('Erro', 'Cliente não encontrado.');
+      }
     } catch (error) {
-      setMensagemErro('Erro ao atualizar perfil.');
+      setMensagemErro('Erro ao carregar dados do cliente.');
       console.error('Error:', error);
-      Alert.alert('Erro', 'Erro ao atualizar perfil.');
+      Alert.alert('Erro', 'Erro ao carregar dados do cliente.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading) return <ActivityIndicator style={styles.loading} size="large" color="#0000ff" />;
-  if (mensagemErro) return <Text style={styles.error}>{mensagemErro}</Text>;
+  // Função para buscar todos os clientes
+  const buscarTodosClientes = async () => {
+    setLoading(true);
+    try {
+      const todosClientes = await fetchCliente(); // Busca todos os clientes
+      if (todosClientes.length > 0) {
+        setClientes(todosClientes); // Armazena os clientes no estado
+        setMensagemErro(null);
+      } else {
+        setMensagemErro('Nenhum cliente encontrado.');
+      }
+    } catch (error) {
+      setMensagemErro('Erro ao carregar clientes.');
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      await updateCliente(nome, email, telefone); // Chame a função para atualizar o cliente
+      setCliente({nome, email, telefone }); // Atualize o estado do cliente
+      Alert.alert('Sucesso', 'Dados do cliente atualizados com sucesso!');
+      setModoEdicao(false);
+    } catch (error) {
+      Alert.alert('Erro', 'Erro ao atualizar dados do cliente.');
+      console.error('Error:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Perfil do Cliente</Text>
-      {cliente ? (
+      <Text style={styles.title}>Buscar Cliente</Text>
+      <TextInput 
+        style={styles.input} 
+        value={nome} 
+        onChangeText={setNome} 
+        placeholder="Digite o nome do cliente"
+      />
+      <Button title="Buscar" onPress={buscarCliente} />
+
+      <Button title="Buscar Todos os Clientes" onPress={buscarTodosClientes} />
+
+      {loading && <ActivityIndicator style={styles.loading} size="large" color="#0000ff" />}
+      {mensagemErro && <Text style={styles.error}>{mensagemErro}</Text>}
+
+      {cliente && (
         <View>
-          {modoEdicao ? (
-            <View>
-              <View style={styles.formGroup}>
-                <Text>Nome:</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={nome} 
-                  onChangeText={setNome} 
-                  placeholder="Digite o nome"
-                />
-              </View>
-              <View style={styles.formGroup}>
-                <Text>Email:</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={email} 
-                  onChangeText={setEmail} 
-                  placeholder="Digite o email"
-                  keyboardType="email-address"
-                />
-              </View>
-              <View style={styles.formGroup}>
-                <Text>Telefone:</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={telefone} 
-                  onChangeText={setTelefone} 
-                  placeholder="Digite o telefone"
-                  keyboardType="phone-pad"
-                />
-              </View>
-              <Button title="Salvar" onPress={handleSubmit} />
-              <Button title="Cancelar" onPress={() => setModoEdicao(false)} color="grey" />
-            </View>
-          ) : (
-            <View>
-              <Text><Text style={styles.bold}>Nome:</Text> {cliente.nome}</Text>
-              <Text><Text style={styles.bold}>Email:</Text> {cliente.email}</Text>
-              <Text><Text style={styles.bold}>Telefone:</Text> {cliente.telefone}</Text>
-              <Button title="Editar" onPress={() => setModoEdicao(true)} />
-            </View>
-          )}
-          {mensagemSucesso && <Text style={styles.message}>{mensagemSucesso}</Text>}
+          <Text>Nome: {cliente.nome}</Text>
+          <Text>Email: {cliente.email}</Text>
+          <Text>Telefone: {cliente.telefone}</Text>
+          <Button title="Editar" onPress={() => setModoEdicao(true)} />
         </View>
-      ) : (
-        <Text>Cliente não encontrado.</Text>
+      )}
+
+      {modoEdicao && (
+        <View>
+          <TextInput 
+            style={styles.input} 
+            value={nome} 
+            onChangeText={setNome} 
+            placeholder="Nome do cliente" 
+          />
+          <TextInput 
+            style={styles.input} 
+            value={email} 
+            onChangeText={setEmail} 
+            placeholder="Email do cliente" 
+          />
+          <TextInput 
+            style={styles.input} 
+            value={telefone} 
+            onChangeText={setTelefone} 
+            placeholder="Telefone do cliente" 
+          />
+          <Button title="Salvar" onPress={handleSubmit} />
+          <Button title="Cancelar" onPress={() => setModoEdicao(false)} color="grey" />
+        </View>
+      )}
+
+      {/* Exibir todos os clientes */}
+      {clientes.length > 0 && (
+        <ScrollView style={styles.scrollContainer}>
+          {clientes.map((cliente) => (
+            <View key={cliente.id} style={styles.clienteContainer}>
+              <Text>Nome: {cliente.nome}</Text>
+              <Text>Email: {cliente.email}</Text>
+              <Text>Telefone: {cliente.telefone}</Text>
+            </View>
+          ))}
+        </ScrollView>
       )}
     </View>
   );
@@ -131,22 +151,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
   },
-  formGroup: {
-    marginBottom: 16,
-  },
   input: {
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
     paddingHorizontal: 8,
     marginTop: 8,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  message: {
-    marginTop: 16,
-    color: 'green',
   },
   error: {
     marginTop: 16,
@@ -156,6 +166,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  scrollContainer: {
+    marginTop: 20,
+  },
+  clienteContainer: {
+    marginBottom: 20,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+  },
 });
+
 
 export default PerfilCliente;

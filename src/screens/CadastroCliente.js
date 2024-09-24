@@ -7,7 +7,6 @@ const CadastroCliente = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [mensagem, setMensagem] = useState('');
-  const [erro, setErro] = useState(null);
 
   const handleSubmit = async () => {
     if (!nome || !email || !telefone) {
@@ -16,17 +15,20 @@ const CadastroCliente = ({ navigation }) => {
     }
 
     try {
-      await insertCliente(nome, email, telefone);  
-      setMensagem('Cliente cadastrado com sucesso!');
+      await insertCliente(nome, email, telefone);
+      Alert.alert('Sucesso', 'Cliente cadastrado com sucesso!');
+      
+      // Limpar os campos e a mensagem
       setNome('');
       setEmail('');
       setTelefone('');
-      Alert.alert('Sucesso', 'Cliente cadastrado com sucesso!');
-      navigation.goBack();  
-    } catch (errorMsg) {
-      setMensagem('Erro ao cadastrar cliente.');
-      setErro(errorMsg);
-      Alert.alert('Erro', errorMsg);
+      setMensagem('');
+
+      // Retornar à tela de CadastroCliente
+      navigation.navigate('CadastroCliente');
+    } catch (error) {
+      Alert.alert('Erro', 'Erro ao cadastrar cliente.');
+      console.error('Erro ao cadastrar cliente:', error);
     }
   };
 
@@ -64,7 +66,6 @@ const CadastroCliente = ({ navigation }) => {
       </View>
       <Button title="Cadastrar" onPress={handleSubmit} />
       {mensagem ? <Text style={styles.message}>{mensagem}</Text> : null}
-      {erro ? <Text style={styles.error}>{erro}</Text> : null}
     </View>
   );
 };
@@ -92,10 +93,6 @@ const styles = StyleSheet.create({
   message: {
     marginTop: 16,
     color: 'green',
-  },
-  error: {
-    marginTop: 16,
-    color: 'red',
   },
 });
 

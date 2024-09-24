@@ -1,30 +1,68 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
-import { insertAtendimento } from '../database/database'; // Certifique-se de que esta função exista
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, Button, Alert, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { insertAtendimento, fetchClienteByNome, fetchFuncionarioByNome } from '../database/database';
 
 const CadastroAtendimento = ({ navigation }) => {
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
+  const [showDate, setShowDate] = useState(false);
+  const [showTime, setShowTime] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [funcionario, setFuncionario] = useState('');
   const [description, setDescription] = useState('');
   const [mensagem, setMensagem] = useState('');
   const [erro, setErro] = useState(null);
+  const [clientes, setClientes] = useState([]);
+  const [funcionarios, setFuncionarios] = useState([]);
+  const [clienteBusca, setClienteBusca] = useState('');
+  const [funcionarioBusca, setFuncionarioBusca] = useState('');
+
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowDate(false);
+    setDate(currentDate);
+  };
+
+  const handleTimeChange = (event, selectedTime) => {
+    const currentTime = selectedTime || time;
+    setShowTime(false);
+    setTime(currentTime);
+  };
+
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); 
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`; 
+  };
+
+  const formatTime = (time) => {
+    const hours = String(time.getHours()).padStart(2, '0');
+    const minutes = String(time.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`; 
+  };
 
   const handleSubmit = async () => {
-    if (!date || !patientName || !funcionario || !description) {
+    const formattedDate = formatDate(date); 
+    const formattedTime = formatTime(time);
+    if (!formattedDate || !formattedTime || !patientName || !funcionario || !description) {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
       return;
     }
 
     try {
-      await insertAtendimento(date, patientName, funcionario, description);
-      setMensagem('Atendimento cadastrado com sucesso!');
-      setDate('');
+      await insertAtendimento(formattedDate, formattedTime, patientName, funcionario, description);
+      Alert.alert('Sucesso', 'Atendimento cadastrado com sucesso!');
+
       setPatientName('');
       setFuncionario('');
-      setDescription('');
-      Alert.alert('Sucesso', 'Atendimento cadastrado com sucesso!');
-      navigation.goBack(); // Volta para a tela anterior após sucesso
+      setDescription(''); 
+      setDate(new Date());  
+      setTime(new Date()); 
+      setErro(null);    
+
+      navigation.navigate('CadastroAtendimento');
     } catch (errorMsg) {
       setMensagem('Erro ao cadastrar atendimento.');
       setErro(errorMsg);
@@ -32,35 +70,112 @@ const CadastroAtendimento = ({ navigation }) => {
     }
   };
 
+  const buscarCliente = async (nome) => {
+    if (nome) {
+      const resultado = await fetchClienteByNome(nome);
+      setClientes(resultado);
+    } else {
+      setClientes([]);
+    }
+  };
+
+  const buscarFuncionario = async (nome) => {
+    if (nome) {
+      const resultado = await fetchFuncionarioByNome(nome);
+      setFuncionarios(resultado);
+    } else {
+      setFuncionarios([]);
+    }
+  };
+
+  const selecionarCliente = (cliente) => {
+    setPatientName(cliente.nome);
+    setClienteBusca(''); 
+    setClientes([]); 
+  };
+
+  const selecionarFuncionario = (funcionario) => {
+    setFuncionario(funcionario.nome);
+    setFuncionarioBusca('');
+    setFuncionarios([]); 
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Cadastro de Atendimento</Text>
       <View style={styles.formGroup}>
         <Text>Data:</Text>
-        <TextInput 
-          style={styles.input} 
-          value={date} 
-          onChangeText={setDate} 
-          placeholder="Digite a data (YYYY-MM-DD)"
-        />
+        <Button title="Selecionar Data" onPress={() => setShowDate(true)} />
+        {showDate && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            is24Hour={true}
+            display="default"
+            onChange={handleDateChange}
+          />
+        )}
+        <Text>{formatDate(date)}</Text> 
       </View>
       <View style={styles.formGroup}>
-        <Text>Nome do Cliente:</Text>
+        <Text>Horário:</Text>
+        <Button title="Selecionar Horário" onPress={() => setShowTime(true)} />
+        {showTime && (
+          <DateTimePicker
+            value={time}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={handleTimeChange}
+          />
+        )}
+        <Text>{formatTime(time)}</Text>
+      </View>
+      <View style={styles.formGroup}>
+        <Text>Cliente:</Text>
         <TextInput 
           style={styles.input} 
           value={patientName} 
-          onChangeText={setPatientName} 
+          onChangeText={(nome) => {
+            setPatientName(nome);
+            buscarCliente(nome);
+          }} 
           placeholder="Digite o nome do cliente"
         />
+        {clientes.length > 0 && (
+          <FlatList
+            data={clientes}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => selecionarCliente(item)}>
+                <Text>{item.nome}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
       </View>
       <View style={styles.formGroup}>
         <Text>Funcionário:</Text>
         <TextInput 
           style={styles.input} 
           value={funcionario} 
-          onChangeText={setFuncionario} 
+          onChangeText={(nome) => {
+            setFuncionario(nome);
+            buscarFuncionario(nome);
+          }} 
           placeholder="Digite o nome do funcionário"
         />
+        {funcionarios.length > 0 && (
+          <FlatList
+            data={funcionarios}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => selecionarFuncionario(item)}>
+                <Text>{item.nome}</Text>
+              </TouchableOpacity>
+            )}
+          />
+        )}
       </View>
       <View style={styles.formGroup}>
         <Text>Descrição:</Text>

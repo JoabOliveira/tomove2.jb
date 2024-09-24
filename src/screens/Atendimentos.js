@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, FlatList, StyleSheet, Alert } from 'react-native';
-import { fetchAtendimentosPorData } from '../database/database'; // Supondo que você tenha essa função
+import { fetchAtendimentosPorData } from '../database/database';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const Atendimentos = () => {
@@ -21,7 +21,7 @@ const Atendimentos = () => {
       setAtendimentos(atendimentosData);
       setError(null);
     } catch (error) {
-      setError('Erro ao carregar atendimentos.');
+      setError('Erro ao carregar atendimentos: ' + error.message);
       console.error('Error:', error);
     } finally {
       setLoading(false);
@@ -34,11 +34,24 @@ const Atendimentos = () => {
     setDataSelecionada(currentDate);
   };
 
+  const formatDate = (date) => {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); 
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const formatTime = (time) => {
+    const hours = String(new Date(time).getHours()).padStart(2, '0');
+    const minutes = String(new Date(time).getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
   const renderItem = ({ item }) => (
     <View style={styles.item}>
       <Text><Text style={styles.bold}>Cliente:</Text> {item.patientName}</Text>
       <Text><Text style={styles.bold}>Funcionário:</Text> {item.funcionarioName}</Text>
-      <Text><Text style={styles.bold}>Data:</Text> {new Date(item.date).toLocaleString()}</Text>
+      <Text><Text style={styles.bold}>Data:</Text> {formatDate(new Date(item.date))} às {formatTime(item.time)}</Text>
       <Text><Text style={styles.bold}>Descrição:</Text> {item.description}</Text>
     </View>
   );
@@ -59,7 +72,7 @@ const Atendimentos = () => {
           onChange={handleDateChange}
         />
       )}
-      <Text>Data selecionada: {dataSelecionada.toLocaleDateString()}</Text>
+      <Text>Data selecionada: {formatDate(dataSelecionada)}</Text>
 
       <FlatList
         data={atendimentos}
